@@ -10,6 +10,7 @@
 <style>
   :root { --bg:#090F1F; --surface:#111A30; --text:#EEF1F8; --muted:#94A0B8; --teal:#26E9D3; --line:#1E2A45; }
   * { box-sizing: border-box; }
+  [hidden] { display:none !important; }
   body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--bg); color:var(--text);
          font:17px/1.5 -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif; padding:24px 16px; }
   main { max-width:420px; width:100%; text-align:center; }
@@ -37,14 +38,17 @@
     <circle cx="847.5" cy="458" r="54" fill="#FD7B5E"/>
   </svg>
   <div class="brand">At<span>Station</span></div>
-  <p>Fun while you wait. Stack towers, stamp 30 cities.</p>
+  <p id="tagline">Fun while you wait. Stack towers, stamp 30 cities.</p>
+  <a id="open" class="btn primary" hidden>Accept in AtStation</a>
   <a id="primary" class="btn primary" href="https://apps.apple.com/app/id6821316557">Download</a>
   <a class="btn" href="https://apps.apple.com/app/id6821316557">App Store (iPhone, iPad)</a>
   <a class="btn" href="https://play.google.com/store/apps/details?id=com.atstation.app">Google Play (Android)</a>
+  <p id="after" hidden></p>
   <small>Free to start · no ads</small>
 </main>
 <script>
   // Send each phone straight to its own store; desktops see both buttons.
+  // A challenge link stays here first: it can open the app, which a redirect can't.
   (function () {
     var ios = 'https://apps.apple.com/app/id6821316557';
     var android = 'https://play.google.com/store/apps/details?id=com.atstation.app';
@@ -52,6 +56,29 @@
     var isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     var isAndroid = /Android/i.test(ua);
     var primary = document.getElementById('primary');
+    var CITIES = {"london":"London","paris":"Paris","rome":"Rome","amsterdam":"Amsterdam","barcelona":"Barcelona","tokyo":"Tokyo","bangkok":"Bangkok","mumbai":"Mumbai","dubai":"Dubai","seoul":"Seoul","cairo":"Cairo","marrakech":"Marrakech","nairobi":"Nairobi","capetown":"Cape Town","lagos":"Lagos","newyork":"New York","mexicocity":"Mexico City","buenosaires":"Buenos Aires","riodejaneiro":"Rio de Janeiro","vancouver":"Vancouver","sydney":"Sydney","melbourne":"Melbourne","auckland":"Auckland","fiji":"Fiji","honolulu":"Honolulu","reykjavik":"Reykjavik","tromso":"Tromso","thepole":"The Pole","svalbard":"Svalbard","ultima":"Ultima"};
+    var q = new URLSearchParams(location.search);
+    var city = q.get('c');
+    var score = q.get('s');
+    if (Object.prototype.hasOwnProperty.call(CITIES, city) && /^[1-9][0-9]{0,3}$/.test(score)) {
+      var query = 'challenge?c=' + city + '&s=' + score;
+      document.title = 'Beat ' + score + ' in ' + CITIES[city];
+      document.getElementById('tagline').textContent = 'A friend challenges you: beat ' + score + ' in ' + CITIES[city] + '.';
+      var after = document.getElementById('after');
+      after.textContent = 'Just installed? Come back here and tap Accept, or enter code ' + city + ' ' + score + ' in the app.';
+      after.hidden = false;
+      if (isIOS || isAndroid) {
+        var open = document.getElementById('open');
+        open.href = isAndroid
+          ? 'intent://' + query + '#Intent;scheme=atstation;package=com.atstation.app;S.browser_fallback_url=' + encodeURIComponent(android) + ';end'
+          : 'atstation://' + query;
+        open.hidden = false;
+        primary.className = 'btn';
+        primary.href = isAndroid ? android : ios;
+        primary.textContent = isAndroid ? 'Get it on Google Play' : 'Get it on the App Store';
+      }
+      return;
+    }
     if (isAndroid) { primary.href = android; primary.textContent = 'Get it on Google Play'; location.replace(android); }
     else if (isIOS) { primary.textContent = 'Download on the App Store'; location.replace(ios); }
   })();
