@@ -76,6 +76,8 @@
         primary.className = 'btn';
         primary.href = isAndroid ? android : ios;
         primary.textContent = isAndroid ? 'Get it on Google Play' : 'Get it on the App Store';
+        // This phone only needs its own store.
+        document.querySelectorAll('a.btn').forEach(function (b) { if (b !== open && b !== primary) b.hidden = true; });
       }
       return;
     }
